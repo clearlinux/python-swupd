@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 import subprocess
 import urllib2
 import os
@@ -48,7 +48,7 @@ def install_bundles(bundle_list, F=None, url=None):
             err = ""
             exit_status = 1
         else:
-            cmd = ['sudo','swupd','bundle-add']
+            cmd = ['sudo', 'swupd', 'bundle-add']
             if bundle in bundle_universe:
                 cmd += [bundle]
                 if F is not None:
