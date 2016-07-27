@@ -1,4 +1,22 @@
-#/usr/bin/env python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# This file is part of python-swupd
+
+# Copyright © 2016 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import subprocess
 import urllib2
 import os
@@ -31,6 +49,13 @@ def get_installed_bundles():
     return p
 
 
+def _get_swupd_base_command(command):
+    """ Return the base part of the command based on the EUID """
+    if os.geteuid() != 0:
+        return ['sudo', 'swupd', command]
+    return ['swupd', command]
+
+
 def install_bundles(bundle_list, F=None, url=None):
     latest_version = get_latest_version()
     installed_bundles = get_installed_bundles()
@@ -48,7 +73,7 @@ def install_bundles(bundle_list, F=None, url=None):
             err = ""
             exit_status = 1
         else:
-            cmd = ['sudo','swupd','bundle-add']
+            cmd = _get_swupd_base_command('bundle-add')
             if bundle in bundle_universe:
                 cmd += [bundle]
                 if F is not None:
@@ -80,7 +105,9 @@ def remove_bundles(bundle_list):
     err_ = ""
     for bundle in bundle_list:
         if(bundle in installed_bundles):
-            p = subprocess.Popen(['sudo', 'swupd', 'bundle-remove', bundle],
+            cmd = _get_swupd_base_command('bundle-remove')
+            cmd.append(bundle)
+            p = subprocess.Popen(cmd,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             o, e = p.communicate()
@@ -99,7 +126,8 @@ def update():
     exit_status = 0
     out = ""
     err = ""
-    p = subprocess.Popen(['sudo', 'swupd', 'update'],
+    cmd = _get_swupd_base_command('update')
+    p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     out, err = p.communicate()
